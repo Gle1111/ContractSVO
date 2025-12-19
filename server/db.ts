@@ -1,11 +1,15 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from "@shared/schema";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-neonConfig.webSocketConstructor = ws;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://localhost/contract_svo';
+const dbPath = path.join(__dirname, '../data.db');
+const sqlite = new Database(dbPath);
 
-export const pool = new Pool({ connectionString: databaseUrl });
-export const db = drizzle({ client: pool, schema });
+sqlite.pragma('journal_mode = WAL');
+
+export const db = drizzle({ client: sqlite, schema });
